@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import wagtail_factories
 
+
 from grapple.types.images import rendition_allowed
 
 if sys.version_info >= (3, 7):
@@ -39,6 +40,39 @@ class BaseGrappleTest(TestCase):
     def setUp(self):
         self.client = Client(SCHEMA)
         self.home = HomePage.objects.first()
+
+
+class BaseGrappleTestWithIntrospection(BaseGrappleTest):
+    def setUp(self):
+        super().setUp()
+        query = """
+		query availableQueries {
+		  __schema {
+			queryType {
+			  fields{
+				name
+				type {
+				  kind
+				  ofType {
+					name
+					kind
+					ofType {
+						kind
+						name
+						ofType {
+							kind
+							name
+						}
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+		"""
+        executed = self.client.execute(query)
+        self.available_queries = executed["data"]["__schema"]["queryType"]["fields"]
 
 
 class PagesTest(BaseGrappleTest):

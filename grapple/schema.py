@@ -1,8 +1,9 @@
 import graphene
 
 from django.conf import settings
-from graphql.validation.rules import NoUnusedFragments, specified_rules
+from graphql.validation import NoUnusedFragmentsRule, specified_rules
 from wagtail.core import hooks
+from graphql.pyutils.frozen_error import FrozenError
 
 from .registry import registry
 
@@ -16,7 +17,12 @@ from .registry import registry
 
 # We need to update specified_rules in-place so the change appears
 # everywhere it's been imported
-specified_rules[:] = [rule for rule in specified_rules if rule is not NoUnusedFragments]
+try:
+    specified_rules[:] = [
+        rule for rule in specified_rules if rule is not NoUnusedFragmentsRule
+    ]
+except FrozenError:
+    pass
 
 
 def create_schema():
